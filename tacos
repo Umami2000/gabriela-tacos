@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For Gabriela 💖</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #ffe0e9, #ffffff);
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .hidden { display: none; }
+    button {
+      background: #ff69b4;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      margin: 1rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e35b9d;
+    }
+    .heart {
+      font-size: 2rem;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="main">
+    <h1>Hi Gabriela 💖</h1>
+    <p>I made this just for you. Wanna play a tiny game with me?</p>
+    <button onclick="startGame()">Let's go!</button>
+  </div>
+
+  <div class="container hidden" id="game">
+    <h2>Will you go out with me? 😊</h2>
+    <button onclick="showYes()">Yes</button>
+    <button onclick="moveButton(this)">No</button>
+  </div>
+
+  <div class="container hidden" id="result">
+    <p class="heart">💓</p>
+    <h2>Yay! Can’t wait 🥰</h2>
+    <p>Message me when you're free! – Reon</p>
+  </div>
+
+  <script>
+    const allowedName = "gabriela";
+    const name = prompt("What's your name?");
+    if (!name || name.toLowerCase() !== allowedName) {
+      document.body.innerHTML = "Sorry, this is a private page.";
+    }
+
+    function startGame() {
+      document.getElementById("main").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+    }
+
+    function showYes() {
+      document.getElementById("game").classList.add("hidden");
+      document.getElementById("result").classList.remove("hidden");
+    }
+
+    function moveButton(btn) {
+      btn.style.position = "absolute";
+      btn.style.left = Math.random() * (window.innerWidth - 100) + "px";
+      btn.style.top = Math.random() * (window.innerHeight - 100) + "px";
+    }
+  </script>
+</body>
+</html>
