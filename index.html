@@ -18,37 +18,77 @@
     h1 {
       margin-top: 1rem;
     }
+    .date-selection {
+      margin-top: 1rem;
+      display: none;
+    }
+    .date-selection button {
+      margin: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #ff69b4;
+      color: white;
+      cursor: pointer;
+    }
+    .calendar-link {
+      margin-top: 1rem;
+      font-size: 1rem;
+      display: none;
+    }
+    .calendar-link a {
+      text-decoration: none;
+      color: #007bff;
+    }
   </style>
 </head>
 <body>
   <h1>Gabriela's Run: Basel ➜ Zürich 🏃‍♀️</h1>
   <canvas id="gameCanvas" width="800" height="400"></canvas>
 
+  <div class="date-selection" id="dateOptions">
+    <p>You made it to Zürich! 🇨🇭</p>
+    <p>Want to go on a taco date with me at my place? 🌮❤️</p>
+    <button onclick="pickDate('2025-07-25')">Yes, July 25th</button>
+    <button onclick="pickDate('2025-07-27')">Yes, July 27th</button>
+  </div>
+
+  <div class="calendar-link" id="calendarLink"></div>
+
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let player = { x: 50, y: 300, width: 30, height: 30, color: "#ff69b4", dy: 0, gravity: 1.5, jump: -15, grounded: true };
+    const gabrielaImg = new Image();
+    gabrielaImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Huipil_tradicional_mexicano.svg/512px-Huipil_tradicional_mexicano.svg.png";
+
+    let player = { x: 50, y: 300, width: 40, height: 40, dy: 0, gravity: 1.5, jump: -15, grounded: true };
     let obstacles = [];
     let frames = 0;
     let score = 0;
     let gameOver = false;
+    let funnyLabels = ["trust issues", "short kings", "ghosting", "bad texters", "complicated exes"];
 
     function drawPlayer() {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+      ctx.drawImage(gabrielaImg, player.x, player.y, player.width, player.height);
     }
 
     function createObstacle() {
       const height = Math.random() * 50 + 30;
-      const gap = Math.random() * 200 + 300;
-      obstacles.push({ x: canvas.width, y: canvas.height - height, width: 30, height });
+      const label = funnyLabels[Math.floor(Math.random() * funnyLabels.length)];
+      obstacles.push({ x: canvas.width, y: canvas.height - height, width: 50, height, label });
     }
 
     function drawObstacles() {
       ctx.fillStyle = "#333";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "center";
       obstacles.forEach(ob => {
         ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+        ctx.fillStyle = "#000";
+        ctx.fillText(ob.label, ob.x + ob.width / 2, ob.y - 5);
+        ctx.fillStyle = "#333";
       });
     }
 
@@ -103,9 +143,7 @@
 
       if (score >= 1500) {
         gameOver = true;
-        ctx.fillStyle = "#28a745";
-        ctx.font = "28px Arial";
-        ctx.fillText("You made it to Zürich! ❤️", 250, 200);
+        document.getElementById("dateOptions").style.display = "block";
       }
 
       if (gameOver && score < 1500) {
@@ -127,6 +165,13 @@
         location.reload();
       }
     });
+
+    function pickDate(dateStr) {
+      const calURL = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Taco+Date+with+Reon&dates=${dateStr.replace(/-/g, '')}T180000Z/${dateStr.replace(/-/g, '')}T200000Z&details=Reon+will+pick+you+up+at+your+place+%F0%9F%9A%97&location=Z%C3%BCrich`;
+      const linkDiv = document.getElementById("calendarLink");
+      linkDiv.innerHTML = `<p>See you on ${dateStr} 💖</p><a href="${calURL}" target="_blank">Add to Calendar 📅</a>`;
+      linkDiv.style.display = "block";
+    }
 
     update();
   </script>
