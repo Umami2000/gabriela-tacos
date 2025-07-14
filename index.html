@@ -1,92 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>For Gabriela 💖</title>
+  <meta charset="UTF-8">
+  <title>Gabriela's Run to Zürich</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: linear-gradient(to top, #aee1f9, #ffffff);
+      border: 2px solid #333;
+    }
     body {
-      margin: 0;
-      padding: 2rem;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #ffe0e9, #ffffff);
       text-align: center;
-      color: #333;
+      font-family: Arial, sans-serif;
     }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    .hidden { display: none; }
-    button {
-      background: #ff69b4;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      margin: 1rem;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #e35b9d;
-    }
-    .heart {
-      font-size: 2rem;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
+    h1 {
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="main">
-    <h1>Hi Gabriela 💖</h1>
-    <p>I made this just for you. Wanna play a tiny game with me?</p>
-    <button onclick="startGame()">Let's go!</button>
-  </div>
-
-  <div class="container hidden" id="game">
-    <h2>Will you go out with me? 😊</h2>
-    <button onclick="showYes()">Yes</button>
-    <button onclick="moveButton(this)">No</button>
-  </div>
-
-  <div class="container hidden" id="result">
-    <p class="heart">💓</p>
-    <h2>Yay! Can’t wait 🥰</h2>
-    <p>Message me when you're free! – Reon</p>
-  </div>
+  <h1>Gabriela's Run: Basel ➜ Zürich 🏃‍♀️</h1>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
 
   <script>
-    const allowedName = "gabriela";
-    const name = prompt("What's your name?");
-    if (!name || name.toLowerCase() !== allowedName) {
-      document.body.innerHTML = "Sorry, this is a private page.";
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let player = { x: 50, y: 300, width: 30, height: 30, color: "#ff69b4", dy: 0, gravity: 1.5, jump: -15, grounded: true };
+    let obstacles = [];
+    let frames = 0;
+    let score = 0;
+    let gameOver = false;
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
     }
 
-    function startGame() {
-      document.getElementById("main").classList.add("hidden");
-      document.getElementById("game").classList.remove("hidden");
+    function createObstacle() {
+      const height = Math.random() * 50 + 30;
+      const gap = Math.random() * 200 + 300;
+      obstacles.push({ x: canvas.width, y: canvas.height - height, width: 30, height });
     }
 
-    function showYes() {
-      document.getElementById("game").classList.add("hidden");
-      document.getElementById("result").classList.remove("hidden");
+    function drawObstacles() {
+      ctx.fillStyle = "#333";
+      obstacles.forEach(ob => {
+        ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+      });
     }
 
-    function moveButton(btn) {
-      btn.style.position = "absolute";
-      btn.style.left = Math.random() * (window.innerWidth - 100) + "px";
-      btn.style.top = Math.random() * (window.innerHeight - 100) + "px";
+    function detectCollision(rect1, rect2) {
+      return (
+        rect1.x < rect2.x + rect2.width &&
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.y + rect1.height > rect2.y
+      );
     }
+
+    function update() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Background distance line
+      ctx.fillStyle = "#555";
+      ctx.fillRect(0, 350, canvas.width, 3);
+
+      // Update player
+      player.y += player.dy;
+      player.dy += player.gravity;
+
+      if (player.y > 300) {
+        player.y = 300;
+        player.dy = 0;
+        player.grounded = true;
+      }
+
+      drawPlayer();
+
+      // Update obstacles
+      obstacles.forEach(ob => ob.x -= 5);
+      obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+
+      if (frames % 80 === 0) createObstacle();
+      drawObstacles();
+
+      // Collision detection
+      obstacles.forEach(ob => {
+        if (detectCollision(player, ob)) {
+          gameOver = true;
+        }
+      });
+
+      // Score
+      score++;
+      ctx.fillStyle = "#000";
+      ctx.font = "20px Arial";
+      ctx.fillText(`Distance: ${score} m`, 10, 30);
+
+      if (score >= 1500) {
+        gameOver = true;
+        ctx.fillStyle = "#28a745";
+        ctx.font = "28px Arial";
+        ctx.fillText("You made it to Zürich! ❤️", 250, 200);
+      }
+
+      if (gameOver && score < 1500) {
+        ctx.fillStyle = "#dc3545";
+        ctx.font = "28px Arial";
+        ctx.fillText("Oops! Try again.", 290, 200);
+      }
+
+      frames++;
+      if (!gameOver) requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", e => {
+      if ((e.code === "Space" || e.code === "ArrowUp") && player.grounded) {
+        player.dy = player.jump;
+        player.grounded = false;
+      }
+      if (gameOver && e.code === "Enter") {
+        location.reload();
+      }
+    });
+
+    update();
   </script>
 </body>
 </html>
