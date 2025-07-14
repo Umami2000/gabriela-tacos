@@ -8,17 +8,19 @@
     canvas {
       display: block;
       margin: 0 auto;
-      background: linear-gradient(to top, #aee1f9, #ffffff);
-      border: 2px solid #333;
+      background: #99d6ff;
+      border: 3px solid #333;
     }
     body {
       text-align: center;
-      font-family: Arial, sans-serif;
+      font-family: 'Courier New', monospace;
+      background-color: #f0f8ff;
     }
     h1 {
-      margin-top: 1rem;
+      margin: 1rem;
+      font-size: 2rem;
     }
-    .date-selection {
+    .date-selection, .calendar-link {
       margin-top: 1rem;
       display: none;
     }
@@ -31,11 +33,6 @@
       background-color: #ff69b4;
       color: white;
       cursor: pointer;
-    }
-    .calendar-link {
-      margin-top: 1rem;
-      font-size: 1rem;
-      display: none;
     }
     .calendar-link a {
       text-decoration: none;
@@ -60,56 +57,78 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const gabrielaImg = new Image();
-    gabrielaImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Huipil_tradicional_mexicano.svg/512px-Huipil_tradicional_mexicano.svg.png";
+    const playerImg = new Image();
+    playerImg.src = "https://i.imgur.com/3XKX5RA.png"; // Pixel Gabriela
 
-    let player = { x: 50, y: 300, width: 40, height: 40, dy: 0, gravity: 1.5, jump: -15, grounded: true };
+    const reonImg = new Image();
+    reonImg.src = "https://i.imgur.com/r5JhMIh.png"; // Pixel Reon
+
+    const obstaclesImgs = [
+      { label: "Short King", src: "https://i.imgur.com/W2U5gBd.png" },
+      { label: "Trust Issues", src: "https://i.imgur.com/tU6hM9h.png" },
+      { label: "Party Guy", src: "https://i.imgur.com/LzFVNO9.png" }
+    ];
+
+    const obstacleImages = {};
+    obstaclesImgs.forEach(obj => {
+      const img = new Image();
+      img.src = obj.src;
+      obstacleImages[obj.label] = img;
+    });
+
+    let player = { x: 50, y: 300, width: 40, height: 40, dy: 0, gravity: 1.2, jump: -15, grounded: true };
     let obstacles = [];
     let frames = 0;
     let score = 0;
     let gameOver = false;
-    let funnyLabels = ["trust issues", "short kings", "ghosting", "bad texters", "complicated exes"];
 
     function drawPlayer() {
-      ctx.drawImage(gabrielaImg, player.x, player.y, player.width, player.height);
+      ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+    }
+
+    function drawReon() {
+      ctx.drawImage(reonImg, 740, 300, 40, 40);
     }
 
     function createObstacle() {
-      const height = Math.random() * 50 + 30;
-      const label = funnyLabels[Math.floor(Math.random() * funnyLabels.length)];
-      obstacles.push({ x: canvas.width, y: canvas.height - height, width: 50, height, label });
-    }
-
-    function drawObstacles() {
-      ctx.fillStyle = "#333";
-      ctx.font = "12px Arial";
-      ctx.textAlign = "center";
-      obstacles.forEach(ob => {
-        ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
-        ctx.fillStyle = "#000";
-        ctx.fillText(ob.label, ob.x + ob.width / 2, ob.y - 5);
-        ctx.fillStyle = "#333";
+      const types = ["Short King", "Trust Issues", "Party Guy"];
+      const type = types[Math.floor(Math.random() * types.length)];
+      obstacles.push({
+        x: canvas.width,
+        y: 300,
+        width: 40,
+        height: 40,
+        label: type
       });
     }
 
-    function detectCollision(rect1, rect2) {
-      return (
-        rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.y + rect1.height > rect2.y
-      );
+    function drawObstacles() {
+      ctx.font = "12px monospace";
+      ctx.textAlign = "center";
+      obstacles.forEach(ob => {
+        ctx.drawImage(obstacleImages[ob.label], ob.x, ob.y, ob.width, ob.height);
+        ctx.fillStyle = "#000";
+        ctx.fillText(ob.label, ob.x + ob.width / 2, ob.y - 5);
+      });
+    }
+
+    function detectCollision(a, b) {
+      return a.x < b.x + b.width &&
+             a.x + a.width > b.x &&
+             a.y < b.y + b.height &&
+             a.y + a.height > b.y;
     }
 
     function update() {
       if (gameOver) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Background distance line
-      ctx.fillStyle = "#555";
-      ctx.fillRect(0, 350, canvas.width, 3);
+      // Background grass
+      ctx.fillStyle = "#67c23a";
+      ctx.fillRect(0, 340, canvas.width, 60);
 
-      // Update player
+      // Player physics
       player.y += player.dy;
       player.dy += player.gravity;
 
@@ -120,36 +139,34 @@
       }
 
       drawPlayer();
+      drawReon();
 
-      // Update obstacles
-      obstacles.forEach(ob => ob.x -= 5);
+      obstacles.forEach(ob => ob.x -= 4);
       obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
 
-      if (frames % 80 === 0) createObstacle();
+      if (frames % 100 === 0) createObstacle();
       drawObstacles();
 
-      // Collision detection
-      obstacles.forEach(ob => {
+      for (let ob of obstacles) {
         if (detectCollision(player, ob)) {
           gameOver = true;
         }
-      });
+      }
 
-      // Score
       score++;
       ctx.fillStyle = "#000";
-      ctx.font = "20px Arial";
+      ctx.font = "20px monospace";
       ctx.fillText(`Distance: ${score} m`, 10, 30);
 
-      if (score >= 100) {
+      if (score >= 1500) {
         gameOver = true;
         document.getElementById("dateOptions").style.display = "block";
       }
 
       if (gameOver && score < 1500) {
-        ctx.fillStyle = "#dc3545";
-        ctx.font = "28px Arial";
-        ctx.fillText("Oops! Try again.", 290, 200);
+        ctx.fillStyle = "#e74c3c";
+        ctx.font = "24px monospace";
+        ctx.fillText("💔 Oops! Try again. Press Enter", 250, 200);
       }
 
       frames++;
